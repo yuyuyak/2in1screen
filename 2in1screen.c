@@ -20,8 +20,9 @@ char command[DATA_SIZE*4];
 char *ROT[]   = {"normal", 				"inverted", 			"left", 				"right"};
 char *COOR[]  = {"1 0 0 0 1 0 0 0 1",	"-1 0 1 0 -1 1 0 0 1", 	"0 -1 1 1 0 0 0 0 1", 	"0 1 0 -1 0 1 0 0 1"};
 // char *TOUCH[] = {"enable", 				"disable", 				"disable", 				"disable"};
-char WIDE_WALLPAPER[84];
+//char WIDE_WALLPAPER[84];
 char TALL_WALLPAPER[] = "~/Pictures/TALL-1080x1920.jpg";
+char WIDE_WALLPAPER[] = "~/Pictures/WIDE-1920x1080.jpg";
 
 double accel_y = 0.0,
 #if N_STATE == 4
@@ -83,10 +84,11 @@ void rotate_screen(){
 }
 
 int main(int argc, char const *argv[]) {
-	FILE* stream = popen("grep ^wallpaper= ~/.config/spacefm/session|cut -d '=' -f2", "r");
+/*	FILE* stream = popen("grep ^wallpaper= ~/.config/spacefm/session|cut -d '=' -f2", "r");
 	while (fgets(WIDE_WALLPAPER, 84, stream) != NULL)
 	pclose(stream);
 	WIDE_WALLPAPER[strcspn(WIDE_WALLPAPER, "\r\n")] = 0;
+*/
 	FILE *pf = popen("ls /sys/bus/iio/devices/iio:device*/in_accel*", "r");
 	if(!pf){
 		fprintf(stderr, "IO Error.\n");
