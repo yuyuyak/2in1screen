@@ -1,4 +1,8 @@
-// gcc -O2 -o 2in1screen 2in1screen.c
+/* this is a cool auto rotate script that rotates screen and touchscreen together
+   from https://github.com/aleozlx/2in1screen/blob/master/2in1screen.c
+   build with:
+   gcc -O2 -o 2in1screen 2in1screen.c
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +10,8 @@
 #include <string.h>
 
 #define DATA_SIZE 256
-#define N_STATE 2
+//#define N_STATE 2 //for only normal and invert
+#define N_STATE 4 //for all 4 positions
 char basedir[DATA_SIZE];
 char *basedir_end = NULL;
 char content[DATA_SIZE];
@@ -15,6 +20,8 @@ char command[DATA_SIZE*4];
 char *ROT[]   = {"normal", 				"inverted", 			"left", 				"right"};
 char *COOR[]  = {"1 0 0 0 1 0 0 0 1",	"-1 0 1 0 -1 1 0 0 1", 	"0 -1 1 1 0 0 0 0 1", 	"0 1 0 -1 0 1 0 0 1"};
 // char *TOUCH[] = {"enable", 				"disable", 				"disable", 				"disable"};
+char WIDE_WALLPAPER[84];
+char TALL_WALLPAPER[] = "~/Pictures/TALL-1080x1920.jpg";
 
 double accel_y = 0.0,
 #if N_STATE == 4
@@ -58,11 +65,28 @@ FILE* bdopen(char const *fname, char leave_open){
 void rotate_screen(){
 	sprintf(command, "xrandr -o %s", ROT[current_state]);
 	system(command);
-	sprintf(command, "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s", "Wacom HID 4846 Finger", COOR[current_state]);
+//	sprintf(command, "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s", "Wacom HID 4846 Finger", COOR[current_state]);
+	sprintf(command, "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s", "Wacom HID 4848 Finger touch", COOR[current_state]);
 	system(command);
+	system("killall docky");
+	system("killall spacefm");
+	if (current_state < 2) {
+		sprintf(command, "/usr/bin/spacefm --set-wallpaper %s", WIDE_WALLPAPER);
+	}
+	else {
+		sprintf(command, "/usr/bin/spacefm --set-wallpaper %s", TALL_WALLPAPER);
+	}
+	system("/usr/bin/spacefm --desktop &");
+	usleep(300000);	
+	system(command);
+	system("/usr/bin/docky &");
 }
 
 int main(int argc, char const *argv[]) {
+	FILE* stream = popen("grep ^wallpaper= ~/.config/spacefm/session|cut -d '=' -f2", "r");
+	while (fgets(WIDE_WALLPAPER, 84, stream) != NULL)
+	pclose(stream);
+	WIDE_WALLPAPER[strcspn(WIDE_WALLPAPER, "\r\n")] = 0;
 	FILE *pf = popen("ls /sys/bus/iio/devices/iio:device*/in_accel*", "r");
 	if(!pf){
 		fprintf(stderr, "IO Error.\n");
